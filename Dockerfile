@@ -17,14 +17,10 @@ RUN apt-get update && apt-get install -y \
     libmagickwand-dev \
     mariadb-client
 
-# Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install Imagick extension
-RUN pecl install imagick \
-    && docker-php-ext-enable imagick
+RUN pecl install imagick && docker-php-ext-enable imagick
 
-# Install PHP extensions
 RUN docker-php-ext-install pdo_mysql mbstring zip exif pcntl bcmath gd
 
 # Get latest Composer
@@ -46,17 +42,19 @@ RUN useradd -G www-data,root -u $UID -d /home/$USER $USER && \
 # Set working directory
 WORKDIR /var/www
 
-# Copy Laravel project files
+# Copy Laravel project
 COPY . /var/www
 
-# Optional: Fix permissions
+# Install Composer dependencies
+RUN composer install --no-interaction --prefer-dist --optimize-autoloader
+
+# Set permissions
 RUN chown -R $USER:$USER /var/www
 
 # Switch to non-root user
 USER $USER
 
-# Expose Laravel port
 EXPOSE 8000
 
-# Run Laravel app
+# Start Laravel app
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
