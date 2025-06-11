@@ -47,3 +47,10 @@ WORKDIR /var/www
 
 # Switch to non-root user
 USER $USER
+
+# Expose Laravel port
+EXPOSE 8000
+
+# Start Laravel app
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+
