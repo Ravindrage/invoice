@@ -20,6 +20,7 @@ RUN apt-get update && apt-get install -y \
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
+# Install Imagick extension
 RUN pecl install imagick \
     && docker-php-ext-enable imagick
 
@@ -37,7 +38,7 @@ ARG uid=1000
 ENV USER=$user
 ENV UID=$uid
 
-# Create system user to run Composer and Artisan Commands
+# Create system user
 RUN useradd -G www-data,root -u $UID -d /home/$USER $USER && \
     mkdir -p /home/$USER/.composer && \
     chown -R $USER:$USER /home/$USER
@@ -45,12 +46,17 @@ RUN useradd -G www-data,root -u $UID -d /home/$USER $USER && \
 # Set working directory
 WORKDIR /var/www
 
+# Copy Laravel project files
+COPY . /var/www
+
+# Optional: Fix permissions
+RUN chown -R $USER:$USER /var/www
+
 # Switch to non-root user
 USER $USER
 
 # Expose Laravel port
 EXPOSE 8000
 
-# Start Laravel app
+# Run Laravel app
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
-
